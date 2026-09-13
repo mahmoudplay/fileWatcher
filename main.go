@@ -16,7 +16,7 @@ func main() {
 
 	switch(os.Args[1]){
 		case "watch":
-			if err := utils.CreateConfig(); err != nil {
+			if err := utils.CreateConfig(0); err != nil {
 				fmt.Println(err)
 				return
 			}
@@ -38,6 +38,11 @@ func main() {
 			}
 
 		case "change-time":
+			if len(os.Args) < 3 {
+				fmt.Println("Usage: fileWatcher change-time <number>")
+				return
+			}
+
 			err := utils.SetConfigTime(os.Args[2])
 
 			if err != nil {

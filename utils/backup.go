@@ -25,15 +25,25 @@ func makeBackup(path string) error {
 	}
 	defer src.Close()
 
+	content, err := io.ReadAll(src)
+	if err != nil {
+		return err
+	}
+
+	compressed, err := CompressFile(string(content))
+	if err != nil {
+		return fmt.Errorf("compress failed: %w", err)
+	}
+
 	backup, err := os.Create(filepath.Join("./.backup", fileNameMaker(info.Name(), info.ModTime())))
 	if err != nil {
 		return err
 	}
 	defer backup.Close()
 
-	_, err = io.Copy(backup, src)
+	_, err = backup.Write(compressed)
 	if err != nil {
-		return fmt.Errorf("copy failed: %w", err)
+		return fmt.Errorf("write failed: %w", err)
 	}
 
 	fmt.Printf("%s has been backed up successfully to %s\n",

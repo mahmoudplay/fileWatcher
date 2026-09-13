@@ -3,19 +3,24 @@ package utils
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"gopkg.in/ini.v1"
 )
 
-func CreateConfig() error {
+func CreateConfig(interval int) error {
 	if _, err := os.Stat("config.ini"); err == nil {
 		return nil
+	}
+
+	if interval <= 0 {
+		interval = 10
 	}
 
 	cfg := ini.Empty()
 
 	cfg.Section("backup").
 		Key("interval").
-		SetValue("10")
+		SetValue(strconv.Itoa(interval))
 
 	return cfg.SaveTo("config.ini")
 }
@@ -35,14 +40,24 @@ func GetConfigTime() (int, error) {
 }
 
 func SetConfigTime(value string) error {
+	number, err := timeTranslater(value)
+	if err != nil {
+		return err
+	}
 	cfg, err := ini.Load("config.ini")
 	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
+		if err := CreateConfig(number); err != nil {
+			return fmt.Errorf("failed to create config: %w", err)
+		}
+		cfg, err = ini.Load("config.ini")
+		if err != nil {
+			return fmt.Errorf("failed to load config: %w", err)
+		}
 	}
 
 	cfg.Section("backup").
 		Key("interval").
-		SetValue(value)
+		SetValue(strconv.Itoa(number))
 
 	err = cfg.SaveTo("config.ini")
 	if err != nil {
@@ -52,4 +67,42 @@ func SetConfigTime(value string) error {
 	fmt.Printf("Interval changed successfully to %s", value)
 
 	return nil
+}
+
+func timeTranslater(time string) (int, error){
+	num := time[:len(time)-1]
+
+	switch(time[len(time) - 1]){
+		case 's': {
+			value, err := strconv.Atoi(num)
+
+			if err != nil {
+				return 0, fmt.Errorf("invalid input: %q is not a number", num)
+			}
+
+			return value, nil
+		}
+
+		case 'm': {
+			value, err := strconv.Atoi(num)
+
+			if err != nil {
+				return 0, fmt.Errorf("invalid input: %q is not a number", num)
+			}
+
+			return value * 60, nil
+		}
+
+		case 'h': {
+			value, err := strconv.Atoi(num)
+
+			if err != nil {
+				return 0, fmt.Errorf("invalid input: %q is not a number", num)
+			}
+
+			return value  * 60 * 60, nil
+		}
+
+		default: return 0, fmt.Errorf("Missing extension")
+	}
 }

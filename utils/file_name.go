@@ -14,7 +14,8 @@ func fileNameMaker(fileName string, lastEdit time.Time) string {
 	backupName := name +
 		"_" +
 		lastEdit.Format("20060102_150405") +
-		ext
+		ext +
+		".zst"
 
 	return backupName
 }
