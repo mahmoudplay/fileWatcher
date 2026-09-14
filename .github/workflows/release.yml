@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: contains(github.event.head_commit.message, '[release]')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: windows
+            goarch: amd64
+            suffix: .exe
+          - goos: windows
+            goarch: arm64
+            suffix: .exe
+          - goos: linux
+            goarch: amd64
+            suffix: ""
+          - goos: linux
+            goarch: arm64
+            suffix: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+        run: go build -o fileWatcher${{ matrix.suffix }} .
+
+      - name: Package into zip
+        run: zip fileWatcher-${{ matrix.goos }}-${{ matrix.goarch }}.zip fileWatcher${{ matrix.suffix }}
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zip-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: fileWatcher-*.zip
+          if-no-files-found: error
+
+  release:
+    if: contains(github.event.head_commit.message, '[release]')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version and release body
+        id: vars
+        run: |
+          SUBJECT=$(git log -1 --pretty=format:%s)
+          VERSION=$(echo "$SUBJECT" | grep -oE '\([0-9]+\.[0-9]+\.[0-9]+\)' | head -n1 | tr -d '()')
+          if [ -z "$VERSION" ]; then
+            echo "::error::No (x.y.z) version found in commit message. Example: 'small update (1.2.0) [release]'"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "$SUBJECT" | sed -E 's/\([0-9]+\.[0-9]+\.[0-9]+\)//; s/\[release\]//' | xargs > release_body.txt
+
+      - name: Download zips
+        uses: actions/download-artifact@v4
+        with:
+          pattern: zip-*
+          path: ./artifacts
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.vars.outputs.version }}
+          name: v${{ steps.vars.outputs.version }}
+          body_path: release_body.txt
+          files: ./artifacts/*.zip
