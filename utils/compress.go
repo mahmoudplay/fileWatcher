@@ -1,17 +1,18 @@
 package utils
 
 import (
+	"io"
+
 	"github.com/klauspost/compress/zstd"
 )
 
-func CompressFile(data string) ([]byte, error) {
-	encoder, err := zstd.NewWriter(nil)
-
+func CompressFile(src io.Reader, dst io.Writer) error {
+	encoder, err := zstd.NewWriter(dst)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer encoder.Close()
-	compressed := encoder.EncodeAll([]byte(data), nil)
 
-	return compressed, nil
+	_, err = io.Copy(encoder, src)
+	return err
 }

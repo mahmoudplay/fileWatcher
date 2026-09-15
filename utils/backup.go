@@ -3,11 +3,10 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
+	"time"
 )
-
 
 func makeBackup(path string) error {
 	info, err := os.Stat(path)
@@ -19,36 +18,25 @@ func makeBackup(path string) error {
 		return err
 	}
 
+	backupPath := uniqueBackupPath(filepath.Join("./.backup", fileNameMaker(info.Name(), time.Now())))
+
+	backup, err := os.Create(backupPath)
+	if err != nil {
+		return err
+	}
+	defer backup.Close()
+
 	src, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer src.Close()
 
-	content, err := io.ReadAll(src)
-	if err != nil {
-		return err
-	}
-
-	compressed, err := CompressFile(string(content))
-	if err != nil {
+	if err := CompressFile(src, backup); err != nil {
 		return fmt.Errorf("compress failed: %w", err)
 	}
 
-	backup, err := os.Create(filepath.Join("./.backup", fileNameMaker(info.Name(), info.ModTime())))
-	if err != nil {
-		return err
-	}
-	defer backup.Close()
-
-	_, err = backup.Write(compressed)
-	if err != nil {
-		return fmt.Errorf("write failed: %w", err)
-	}
-
-	fmt.Printf("%s has been backed up successfully to %s\n",
-		info.Name(),
-		filepath.Join("./.backup", fileNameMaker(info.Name(), info.ModTime())))
+	fmt.Printf("%s has been backed up successfully to %s\n", info.Name(), backupPath)
 
 	return nil
 }

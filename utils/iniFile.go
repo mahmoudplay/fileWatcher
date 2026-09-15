@@ -2,9 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"gopkg.in/ini.v1"
 	"os"
 	"strconv"
-	"gopkg.in/ini.v1"
 )
 
 func CreateConfig(interval int) error {
@@ -69,40 +69,30 @@ func SetConfigTime(value string) error {
 	return nil
 }
 
-func timeTranslater(time string) (int, error){
-	num := time[:len(time)-1]
-
-	switch(time[len(time) - 1]){
-		case 's': {
-			value, err := strconv.Atoi(num)
-
-			if err != nil {
-				return 0, fmt.Errorf("invalid input: %q is not a number", num)
-			}
-
-			return value, nil
-		}
-
-		case 'm': {
-			value, err := strconv.Atoi(num)
-
-			if err != nil {
-				return 0, fmt.Errorf("invalid input: %q is not a number", num)
-			}
-
-			return value * 60, nil
-		}
-
-		case 'h': {
-			value, err := strconv.Atoi(num)
-
-			if err != nil {
-				return 0, fmt.Errorf("invalid input: %q is not a number", num)
-			}
-
-			return value  * 60 * 60, nil
-		}
-
-		default: return 0, fmt.Errorf("Missing extension")
+func timeTranslater(value string) (int, error) {
+	if len(value) < 2 {
+		return 0, fmt.Errorf("invalid input: %q must be a number followed by s, m, or h", value)
 	}
+
+	unit := value[len(value)-1]
+	num := value[:len(value)-1]
+
+	multiplier := 1
+	switch unit {
+	case 's':
+		multiplier = 1
+	case 'm':
+		multiplier = 60
+	case 'h':
+		multiplier = 60 * 60
+	default:
+		return 0, fmt.Errorf("invalid unit %q: use s, m, or h", string(unit))
+	}
+
+	n, err := strconv.Atoi(num)
+	if err != nil {
+		return 0, fmt.Errorf("invalid input: %q is not a number", num)
+	}
+
+	return n * multiplier, nil
 }

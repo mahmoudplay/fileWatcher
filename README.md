@@ -54,7 +54,9 @@ The program will:
 3. Back up every file it sees for the first time.
 4. Keep watching, and back up a file again whenever its content changes.
 
-The watcher runs until you stop it with `Ctrl + C`.
+The watcher runs until you stop it with `Ctrl + C`. On restart it
+remembers what it already saw (from a state file), so it does **not**
+re-back-up files that haven't changed since the last run.
 
 ## 3. Where are the backups?
 
@@ -69,6 +71,13 @@ my-document_20260914_103000.docx.zst
 - `my-document.docx` – the original file name
 - `20260914_103000` – the date and time the backup was created
 - `.zst` – back up is compressed with Zstandard
+
+If two backups would get the same filename (for example within the same
+second), the program automatically adds a suffix: `..._103000_1.docx.zst`.
+
+Besides the backups, `.backup/` also holds a `state.json` file that records
+which files and contents have already been backed up (the timestamp in the
+filename uses the backup time — not the file's modification time).
 
 ## 4. Restore a file
 
@@ -193,7 +202,8 @@ fileWatcher/
 2. Every interval, it walks the path from `main.go` (`RegisterFiles()` in `utils/registery.go`):
    - **File:** computes the SHA-256 hash. If the hash is new or different from the last seen hash, it creates a backup (`makeBackup()` in `utils/backup.go`) and updates the stored hash.
    - **Directory:** recurses into each entry.
-3. Backups are compressed with Zstandard (`CompressFile()` in `utils/compress.go`) and written to `.backup/` with a name like `<name>_<YYYYMMDD_HHMMSS>.<ext>.zst`.
+3. Seen hashes are persisted in `.backup/state.json` and re-loaded on startup, so files are only backed up again once their content changes.
+4. Backups are compressed with Zstandard (`CompressFile()` in `utils/compress.go`) and written to `.backup/` with a name like `<name>_<YYYYMMDD_HHMMSS>.<ext>.zst`. Compression streams the file through the encoder, so even very large files use little memory.
 
 ## Extending the tool
 
