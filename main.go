@@ -18,7 +18,7 @@ func main() {
 	}
 
 	switch os.Args[1] {
-	case "watch":
+	case "watch", "-w":
 		if len(os.Args) < 3 {
 			fmt.Println("Usage: fileWatcher watch <path>")
 			return
@@ -59,7 +59,7 @@ func main() {
 			}
 		}
 
-	case "change-time":
+	case "change-time", "-ct":
 		if len(os.Args) < 3 {
 			fmt.Println("Usage: fileWatcher change-time <number>")
 			return
@@ -71,7 +71,10 @@ func main() {
 			return
 		}
 
-	case "help":
+	case "version", "-v":
+		utils.PrintVersion()
+
+	case "help", "-h":
 		utils.HelpCli()
 
 	default:

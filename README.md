@@ -42,9 +42,13 @@ Run the program from a command line (terminal). On Windows open `cmd` or `PowerS
 ```bash
 # Windows
 fileWatcher watch C:\Users\you\Documents\my-project
+# or using shortcut:
+fileWatcher -w C:\Users\you\Documents\my-project
 
 # Linux
 ./fileWatcher watch /home/you/Documents/my-project
+# or using shortcut:
+./fileWatcher -w /home/you/Documents/my-project
 ```
 
 The program will:
@@ -92,14 +96,18 @@ zstd -d my-document_20260914_103000.docx.zst
 
 ## 5. Change how often it checks for changes
 
-The default check is every 10 seconds. To change it, use the `change-time` command (the program does **not** need to be running to change the config):
+The default check is every 10 seconds. To change it, use the `change-time` (or `-ct`) command (the program does **not** need to be running to change the config):
 
 ```bash
 # Windows
 fileWatcher change-time 30s
+# or using shortcut:
+fileWatcher -ct 30s
 
 # Linux
 ./fileWatcher change-time 5m
+# or using shortcut:
+./fileWatcher -ct 5m
 ```
 
 | Suffix | Meaning            | Example            |
@@ -108,10 +116,20 @@ fileWatcher change-time 30s
 | `m`    | minutes            | `change-time 5m`   |
 | `h`    | hours              | `change-time 1h`   |
 
-## 6. Get help
+## 6. Check version
+
+```bash
+fileWatcher version
+# or using shortcut:
+fileWatcher -v
+```
+
+## 7. Get help
 
 ```bash
 fileWatcher help
+# or using shortcut:
+fileWatcher -h
 ```
 
 ---
