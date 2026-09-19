@@ -146,7 +146,7 @@ This guide is for developers who want to build, modify, or contribute to the pro
 ## Set up
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/mahmoudplay/fileWatcher.git
 cd fileWatcher
 ```
 
@@ -179,12 +179,10 @@ The project is pure Go (no CGo), so building statically with `CGO_ENABLED=0` wor
 ## Run locally
 
 ```bash
-go run . watch ./gg        # watch the sample directory
-go run . change-time 10s   # change interval
-go run . help              # show help
+go run . watch ./your-files     # watch the sample directory
+go run . change-time 10s        # change interval
+go run . help                   # show help
 ```
-
-`./gg` is a test directory included in the repo.
 
 ## Check your code
 
@@ -238,20 +236,6 @@ fileWatcher/
 interval = 10
 ```
 
-## Releasing a new version
-
-1. Bump the version in your commit message (the project follows a `x.y.z` convention).
-2. Push the changes:
-   ```bash
-   git push origin main
-   ```
-3. Create a tag and push it:
-   ```bash
-   git tag v1.2.0
-   git push origin v1.2.0
-   ```
-4. On GitHub, create a **Release** from that tag. The included workflow (`.github/workflows/release.yml`) automatically builds and attaches the Windows and Linux binaries for you.
-
 ## Contributing
 
 - Keep code formatted (`gofmt`) and run `go vet ./...` before committing.
@@ -259,10 +243,6 @@ interval = 10
 - Backups and config files (`config.ini`, `.backup/`) are gitignored — don't commit them.
 
 ---
-
-## Continuous Integration
-
-A GitHub Action (`.github/workflows/release.yml`) automatically builds and attaches Windows and Linux binaries (amd64 + arm64) to the repo's GitHub releases when a release is created.
 
 ## License
 
